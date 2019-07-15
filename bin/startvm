@@ -95,7 +95,7 @@ configureNetworks () {
   iptables -t nat -A PREROUTING -i eth0 -p tcp  -j DNAT --to $VM_IP
   iptables -t nat -A PREROUTING -i eth0 -p udp  -j DNAT --to $VM_IP
   #For now we define static MAC because DHCP is very slow if DHCP change every VM Boot
-  KVM_NET_OPTS="-netdev tap,ifname=vm-nat,script=no,downscript=no,id=net0  -device virtio-net-pci,netdev=net0,mac=$VM_MAC"
+  KVM_NET_OPTS="-netdev tap,ifname=vm-nat,script=no,downscript=no,id=net0  -device e1000,netdev=net0,mac=$VM_MAC"
   #KVM_NET_OPTS="-netdev tap,vhost=on,id=net0,fd=3 3<>/dev/vm-nat  -device virtio-net,netdev=net0,mac=$VM_MAC"
   setupDhcp $VM_MAC
 }
@@ -134,8 +134,8 @@ configureNetworks
 iptables -A POSTROUTING -t mangle -p udp --dport bootpc -j CHECKSUM --checksum-fill
 
 # Build DNS options from container /etc/resolv.conf
-nameservers=($(grep nameserver /etc/resolv.conf | sed 's/nameserver //'))
-searchdomains=$(grep search /etc/resolv.conf | sed 's/search //' | sed 's/ /,/g')
+nameservers=($(grep '^nameserver' /etc/resolv.conf | sed 's/nameserver //'))
+searchdomains=$(grep '^search' /etc/resolv.conf | sed 's/search //' | sed 's/ /,/g')
 domainname=$(echo $searchdomains | awk -F"," '{print $1}')
 
 for nameserver in "${nameservers[@]}"; do
